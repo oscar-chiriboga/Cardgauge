@@ -42,10 +42,10 @@ function drawManual(){
  p.forEach((q,i)=>{ctx.beginPath();ctx.fillStyle=i<2?'#00d9ff':'#d1ff80';ctx.strokeStyle='#151515';ctx.arc(q.x*canvas.width,q.y*canvas.height,Math.max(5,canvas.width/90),0,Math.PI*2);ctx.fill();ctx.stroke();});
  const m=measureManual(p);$('manual-hint').textContent=p.length<4?stageNames[p.length]:'Measurement complete. Reset to correct any misplaced points.';
  const display=[];for(const side of ['front','back']){const val=measureManual(manualPoints[side]);if(val)display.push(side.toUpperCase()+': '+(val.error||('Left/right '+fmt(val.h)+' · Top/bottom '+fmt(val.v))));}
- $('manual-results').textContent=display.join('\n');if(display.length){reportText+='\nGuided measurements (user-selected boundaries):\n'+display.join('\n')+'\n';}
+ $('manual-results').textContent=display.join('\n');/* Guided results stay on screen; exported on save without duplicating during redraw. */
 }
 $('manual-canvas').addEventListener('click',e=>{const p=manualPoints[activeManualSide],canvas=$('manual-canvas');if(!manualImages[activeManualSide]||p.length>=4)return;const rect=canvas.getBoundingClientRect();p.push({x:Math.min(1,Math.max(0,(e.clientX-rect.left)/rect.width)),y:Math.min(1,Math.max(0,(e.clientY-rect.top)/rect.height))});drawManual();});
 $('manual-front').addEventListener('click',()=>{activeManualSide='front';drawManual()});$('manual-back').addEventListener('click',()=>{activeManualSide='back';drawManual()});$('manual-reset').addEventListener('click',()=>{manualPoints[activeManualSide]=[];drawManual()});
 
-$('save-report').addEventListener('click',()=>{const blob=new Blob([reportText],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cardgauge-card-report.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);});
+$('save-report').addEventListener('click',()=>{const guided=['front','back'].map(side=>{const m=measureManual(manualPoints[side]);return m?side+': '+(m.error||('L/R '+fmt(m.h)+' T/B '+fmt(m.v))):null}).filter(Boolean);const blob=new Blob([reportText+(guided.length?'\nGuided measurements:\n'+guided.join('\n'):'')],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cardgauge-card-report.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);});
 </script></body></html>
